@@ -1,12 +1,15 @@
 package hazae41.minecraft.sockets.bukkit
 
 import hazae41.minecraft.kotlin.bukkit.*
+import hazae41.minecraft.kotlin.textOf
 import hazae41.minecraft.sockets.Sockets
 import hazae41.minecraft.sockets.Sockets.onSocketEnable
+import hazae41.minecraft.sockets.Sockets.sockets
 import hazae41.sockets.*
 import io.ktor.http.cio.websocket.send
+import net.md_5.bungee.api.chat.ClickEvent
+import net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND
 import java.util.concurrent.TimeUnit
-import javax.crypto.SecretKey
 
 class Plugin : BukkitPlugin() {
 
@@ -19,7 +22,13 @@ class Plugin : BukkitPlugin() {
 
         command("sockets", permission = "sockets.list"){ args ->
             msg("Available sockets:")
-            msg(Sockets.sockets.keys.joinToString(", "))
+            sockets.keys.forEachIndexed { i, key ->
+                if(i != 0) msg(", ")
+                textOf(key){
+                    clickEvent = ClickEvent(RUN_COMMAND, "/socket $key")
+                    msg(this)
+                }
+            }
         }
 
         command("socket", permission = "sockets.info"){ args ->
@@ -35,7 +44,6 @@ class Plugin : BukkitPlugin() {
         }
 
         if(Config.test){
-
             onSocketEnable {
                 onConversation("/test"){
                     val (encrypt) = aes()
@@ -73,14 +81,10 @@ object Config: ConfigFile("config"){
     }
 }
 
-fun String.aes(): SecretKey {
-    if(isBlank()) return AES.generate()
-    return AES.toKey(this)
-}
 
 fun Plugin.start(config: Config.Socket) {
     val socket = Socket(config.port)
-    Sockets.sockets[config.path] = socket
+    sockets[config.path] = socket
 
     config.connections.forEach {
         config ->socket.connectTo(config.path, config.host, config.port)

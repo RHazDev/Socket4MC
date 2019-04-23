@@ -1,14 +1,15 @@
 package hazae41.minecraft.sockets.bungee
 
 import hazae41.minecraft.kotlin.bungee.*
-import hazae41.minecraft.sockets.Sockets
+import hazae41.minecraft.kotlin.textOf
 import hazae41.minecraft.sockets.Sockets.onSocketEnable
 import hazae41.minecraft.sockets.Sockets.sockets
 import hazae41.minecraft.sockets.Sockets.socketsNotifiers
 import hazae41.sockets.*
 import io.ktor.http.cio.websocket.send
+import net.md_5.bungee.api.chat.ClickEvent
+import net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND
 import java.util.concurrent.TimeUnit.SECONDS
-import javax.crypto.SecretKey
 
 class Plugin : BungeePlugin(){
 
@@ -21,7 +22,13 @@ class Plugin : BungeePlugin(){
 
         command("sockets", permission = "sockets.list"){ args ->
             msg("Available sockets:")
-            msg(sockets.keys.joinToString(", "))
+            sockets.keys.forEachIndexed { i, key ->
+                if(i != 0) msg(", ")
+                textOf(key){
+                    clickEvent = ClickEvent(RUN_COMMAND, "/socket $key")
+                    msg(this)
+                }
+            }
         }
 
         command("socket", permission = "sockets.info"){ args ->
@@ -34,7 +41,6 @@ class Plugin : BungeePlugin(){
 
             msg("Available connections for $name:")
             msg(socket.connections.keys.joinToString(", "))
-            msg("Use '/socket $name key' to see the secret key")
         }
 
         if(Config.test){
@@ -101,14 +107,9 @@ object Config: ConfigFile("config"){
     }
 }
 
-fun String.aes(): SecretKey {
-    if(isBlank()) return AES.generate()
-    return AES.toKey(this)
-}
-
 fun Plugin.start(config: Config.Socket) {
     val socket = Socket(config.port)
-    Sockets.sockets[config.path] = socket
+    sockets[config.path] = socket
 
     config.connections.forEach {
         config -> socket.connectTo(config.path, config.host, config.port)
