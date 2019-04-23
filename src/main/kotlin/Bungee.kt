@@ -1,15 +1,12 @@
 package hazae41.minecraft.sockets.bungee
 
 import hazae41.minecraft.kotlin.bungee.*
-import hazae41.minecraft.kotlin.textOf
 import hazae41.minecraft.sockets.Sockets
 import hazae41.minecraft.sockets.Sockets.onSocketEnable
 import hazae41.minecraft.sockets.Sockets.sockets
 import hazae41.minecraft.sockets.Sockets.socketsNotifiers
 import hazae41.sockets.*
 import io.ktor.http.cio.websocket.send
-import net.md_5.bungee.api.chat.ClickEvent
-import net.md_5.bungee.api.chat.ClickEvent.Action.SUGGEST_COMMAND
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.crypto.SecretKey
 
@@ -35,22 +32,9 @@ class Plugin : BungeePlugin(){
             val socket = sockets[name]
             ?: return@command msg("Unknown socket")
 
-            if(args.getOrNull(1) == "key"){
-                val key = socket.key
-                ?: return@command msg("This socket has no key")
-
-                val keyStr = AES.toString(key)
-                textOf("Click here to copy: $keyStr"){
-                    clickEvent = ClickEvent(SUGGEST_COMMAND, keyStr)
-                    msg(this)
-                }
-            }
-
-            else {
-                msg("Available connections for $name:")
-                msg(socket.connections.keys.joinToString(", "))
-                msg("Use '/socket $name key' to see the secret key")
-            }
+            msg("Available connections for $name:")
+            msg(socket.connections.keys.joinToString(", "))
+            msg("Use '/socket $name key' to see the secret key")
         }
 
         if(Config.test){
@@ -64,7 +48,7 @@ class Plugin : BungeePlugin(){
                 ?: return@command msg("Unknown connection")
                             
                 connection.conversation("/test"){
-                    val (_, decrypt) = socket.aes()
+                    val (_, decrypt) = aes()
                     println(readMessage().decrypt())
                 }
             }
@@ -104,7 +88,6 @@ object Config: ConfigFile("config"){
 
     class Socket(config: ConfigSection, path: String): ConfigSection(config, path){
         val port by int("port")
-        var key by string("key")
 
         val ConnectionsConfig = ConfigSection(this, "connections")
         val connections get() = ConnectionsConfig.config.keys.map {
@@ -124,10 +107,7 @@ fun String.aes(): SecretKey {
 }
 
 fun Plugin.start(config: Config.Socket) {
-    val key = config.key.aes()
-    if(config.key.isBlank()) config.key = AES.toString(key)
-
-    val socket = Socket(config.port, key)
+    val socket = Socket(config.port)
     Sockets.sockets[config.path] = socket
 
     config.connections.forEach {
