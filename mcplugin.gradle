@@ -17,6 +17,7 @@ processResources.with copySpec {
 
 tasks.shadowJar {
     classifier = 'bundle'
+    relocate 'org.slf4j', 'io.ktor.org.slf4j'
     //dependsOn tasks.relocateShadowJar
     dependsOn 'clean'
     mustRunAfter 'clean'
