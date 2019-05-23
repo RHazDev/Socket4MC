@@ -46,8 +46,7 @@ class Plugin : BukkitPlugin() {
         if(Config.test){
             onSocketEnable {
                 onConversation("/test"){
-                    val (encrypt) = aes()
-                    send("it works!".encrypt())
+                    send("it works!")
                 }
 
                 onConversation("/test/hello"){
@@ -92,7 +91,7 @@ fun Plugin.start(config: Config.Socket) {
 
     schedule(delay = 0, unit = TimeUnit.SECONDS) {
         Sockets.socketsNotifiers.forEach { it(socket, config.path) }
-        socket.start()
-        info("Started ${config.path}")
+        socket.start(dataFolder)
+        info("Started ${config.path} on port ${config.port}")
     }
 }

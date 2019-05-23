@@ -9,7 +9,6 @@ import hazae41.sockets.*
 import io.ktor.http.cio.websocket.send
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND
-import java.util.concurrent.TimeUnit.SECONDS
 
 class Plugin : BungeePlugin(){
 
@@ -54,8 +53,7 @@ class Plugin : BungeePlugin(){
                 ?: return@command msg("Unknown connection")
                             
                 connection.conversation("/test"){
-                    val (_, decrypt) = aes()
-                    println(readMessage().decrypt())
+                    println(readMessage())
                 }
             }
             
@@ -71,8 +69,7 @@ class Plugin : BungeePlugin(){
 
             onSocketEnable { name ->
                 onConversation("/test"){
-                    val (encrypt) = aes()
-                    send("it works!".encrypt())
+                    send("it works!")
                 }
 
                 onConversation("/test/hello"){
@@ -116,6 +113,6 @@ fun Plugin.start(config: Config.Socket) {
     }
 
     socketsNotifiers.forEach { it(socket, config.path) }
-    socket.start()
-    info("Started ${config.path}")
+    socket.start(dataFolder)
+    info("Started ${config.path} on port ${config.port}")
 }

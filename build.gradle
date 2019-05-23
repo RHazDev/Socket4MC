@@ -13,7 +13,7 @@ task relocateShadowJar(type: ConfigureShadowRelocation) {
 }
 
 group 'hazae41'
-version '6.2'
+version '6.3'
 
 apply from: 'mcplugin.gradle'
 apply from: 'bungeecord.gradle'
@@ -21,11 +21,12 @@ apply from: 'spigot.gradle'
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation 'com.github.hazae41:multisockets:6.2'
+    implementation 'com.github.hazae41:multisockets:6.3'
 }
 
 compileKotlin {
